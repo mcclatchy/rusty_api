@@ -9,3 +9,5 @@ A graphql based api that responds to cgi requests and uses sqlite3 for storage
     3. Create database migration: `diesel migration generate rusty_api`.
     4. Migrate the database: `diesel migration run`.
 3. To compile the binary, run `cargo build --release`.
+
+After setting everything up and compiling the code, the binary will be located at `target/release/rusty_api`.
