@@ -11,3 +11,5 @@ A graphql based api that responds to cgi requests and uses sqlite3 for storage
 3. To compile the binary, run `cargo build --release`.
 
 After setting everything up and compiling the code, the binary will be located at `target/release/rusty_api`.
+
+_Caution: The current query uses a hard coded index key, so it won't work unless you create a new record and swap the index key out before compiling._ 
