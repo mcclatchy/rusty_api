@@ -1,0 +1,15 @@
+[package]
+name = "rusty_api"
+version = "0.1.0"
+authors = ["Acton H. Gorton <agorton@mcclatchy.com>"]
+edition = "2018"
+
+[dependencies]
+async-graphql = "2.0"
+async-std = "1.7.0"
+diesel = { version = "1.4.4", features = ["sqlite", "r2d2"] }
+serde = "1.0.117"
+serde_json = "1.0.60"
+uuid = { version = "0.8", features = ["serde", "v4"] }
+
+
