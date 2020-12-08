@@ -2,3 +2,4 @@
 .idea
 migrations
 rusty_api.sqlite
+**/*.rs.bk
