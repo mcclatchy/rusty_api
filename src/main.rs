@@ -1,30 +1,13 @@
 extern crate diesel;
-use rusty_api::graphql::Query;
+use rusty_api::graphql::{Query, Mutation};
 use std::io::{Write, Read, stdin};
-
-#[macro_use]
-extern crate lazy_static;
-
-lazy_static! {
-    [pub] static ref CONFIG: _ = crate::config::get_configuration().unwrap();
-    [pub] static ref API_KEY: String = CONFIG.api_key;
-    [pub] static ref DB_URL: String = CONFIG.database_url;
-}
-const API_KEY: String = "Foo".to_string();
-
-// // get config parameters
-// static CONFIG: _ = crate::config::get_configuration().unwrap();
-// // API KEY
-// pub const API_KEY: &'static str = CONFIG.api_key;
-// // DB File Name
-// pub const DB_URL: &'static str = CONFIG.database_url;
 
 async fn get_post(query: String) -> Vec<u8> {
     use async_graphql::*;
     let string_query: String = format!(r#"{}"#, query);
-    let schema: Schema<Query, EmptyMutation, EmptySubscription> = Schema::new(
+    let schema: Schema<Query, Mutation, EmptySubscription> = Schema::new(
         Query,
-        EmptyMutation,
+        Mutation,
         EmptySubscription
     );
     // execute the query
@@ -35,9 +18,6 @@ async fn get_post(query: String) -> Vec<u8> {
 
 #[tokio::main]
 async fn main() {
-
-
-
 
     // get the content length; prevents the insertion of any additional commands
     let content_length= envmnt::get_usize("CONTENT_LENGTH", 0);
