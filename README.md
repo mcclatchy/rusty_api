@@ -1,5 +1,12 @@
 # Rusty API
-A graphql based api that responds to cgi requests and uses sqlite3 for storage
+A graphql based api that responds to cgi requests and uses sqlite3 for storage.
+
+This code is intended to be used as boilerplate for projects that require the use of a database. 
+The static media server supports the execution of CGI, which is suitable for relatively low volumes of traffic.
+
+A use case might be as a non-ephemeral storage solution for newsroom tools. 
+Or, perhaps for writing data to the server and then having the results of that data copied 
+to another location on the server that can be accessible by readers.
 
 ## Setup Tools, Database and Compile Binary
 1. Make sure Rust is installed on your machine. If not, follow the instructions on [the Rust website](https://www.rust-lang.org/tools/install).
@@ -57,3 +64,52 @@ expected to be placed alongside the binary.
 `debug` is reserved for future use and is intended to be used for switching 
 between a debug and production environment.
 
+## Examples
+Although this program has been working very well for local development, there have been
+some occassional unexpected / odd behaviors when deployed to the static media server. 
+
+Here are three commands to test the current GraphQL functionality. 
+Some substitution will likely be necessary to reference the correct record or server location. 
+
+### Return all Posts
+`curl -X POST -H "Content-Type: application/json" --data '{ allPosts{id title body published} }' http://localhost:8000/cgi-bin/test.cgi -v`
+
+### Return a single Post by ID
+`curl -X POST -H "Content-Type: application/json" --data '{ getPost(postId: "659cc6d7-b74d-4fff-bfae-c06aedb905f1"){id title body} }' http://localhost:8000/cgi-bin/test.cgi -v`
+
+### Create a new Post
+`curl -X POST -H "Content-Type: application/json" --data 'mutation { createPost(postTitle: "Today was a good day" postBody: "I didn't even have to use my AK" postPublished: true){id title body published} }' http://localhost:8000/cgi-bin/test.cgi -v`
+
+## Testing
+If Python is available on your system, then it's very easy to setup a local server for testing. 
+This shell script will compile the code, copy it into a local path named `cgi-bin`, and then run a web server.
+The `curl` statements above can be used for interacting with the server to test the code.
+
+```shell
+#!/usr/bin/env bash
+set -euxo pipefail
+clear
+echo Starting Build
+cargo build --release
+echo Copying build to ./cgi-bin
+cp target/release/rusty_api ./cgi-bin/test.cgi
+echo Starting server
+python3 -m http.server --bind localhost --cgi 8000
+```
+After you copy & paste the above code into a shell script file, such as `test.sh`, place the script alongside the binary.
+Make sure to run `chmod +x ./test.sh` so that your system will treat it as an executable. 
+
+To run the script, type `./test.sh` and open point your web browser to `localhost:8000/cgi-bin/test.cgi`.
+
+## Security
+Because CGI runs in a seperate thread created by the web server and as a standalone executable
+on the server, it is susceptible to denial of service attacks. 
+
+Therefore, it is strongly recommended that the location of the binary is obfuscated, as well 
+as placed behind a username and password defined in a local `.htaccess` file.
+
+The web server communicates to the CGI executable through a combination of environment variables
+and STDIN, providing some additional security for the executable. 
+
+Additionally, because this is written in Rust, there is a reduced threat from common attacks, though 
+this code has not been thoroughly vetted, meaning percautions and best practices should always be adhered to. 
