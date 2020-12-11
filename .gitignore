@@ -5,3 +5,4 @@ rusty_api.sqlite
 **/*.rs.bk
 test.sh
 /cgi-bin
+settings.toml
