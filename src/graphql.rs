@@ -48,25 +48,50 @@ impl Query {
         a + b
     }
 
-    // async fn get_post(&self, post_id: String) -> String {
+    // get a post by id
     async fn get_post(&self, post_id: String) -> Vec<crate::graphql::Post> {
         // use crate::models::Post;
         use crate::schema::posts::dsl::*;
+
         // create the connection
         let connection:SqliteConnection = establish_connection();
+
         // make the query and return the results
         let results = posts
             .find(post_id)
             .load::<crate::models::Post>(&connection)
             .expect("Error loading posts");
+
         // convert the model struct to the struct used locally
         // TODO: find a better way to do this without having to map from one struct to another
         results.into_iter().map(|x| crate::graphql::Post{
             id: x.id,
             title: x.title,
             body: x.body,
-            published:
-            x.published
+            published: x.published
+        }).rev().collect()
+    }
+
+    // get all of the posts
+    async fn all_posts(&self) -> Vec<crate::graphql::Post> {
+        // use crate::models::Post;
+        use crate::schema::posts::dsl::*;
+
+        // create the connection
+        let connection:SqliteConnection = establish_connection();
+
+        // make the query and return the results
+        let results = posts
+            .load::<crate::models::Post>(&connection)
+            .expect("Error loading posts");
+
+        // convert the model struct to the struct used locally
+        // TODO: find a better way to do this without having to map from one struct to another
+        results.into_iter().map(|x| crate::graphql::Post{
+            id: x.id,
+            title: x.title,
+            body: x.body,
+            published: x.published
         }).rev().collect()
     }
 
