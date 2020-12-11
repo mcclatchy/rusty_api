@@ -111,7 +111,7 @@ impl Mutation {
         post_title: String,
         post_body: String,
         post_published: bool) -> Vec<crate::graphql::Post> {
-        
+
         // use crate::models::Post;
         use crate::schema::posts::dsl::*;
 

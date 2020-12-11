@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 
 
 #[derive(Serialize, Deserialize)]
-#[derive(Queryable)]
+#[derive(Queryable, Insertable)]
 pub struct Post {
     pub id: String,
     pub title: String,
@@ -11,10 +11,10 @@ pub struct Post {
     pub published: bool,
 }
 
-#[derive(Insertable)]
-#[table_name="posts"]
-pub struct NewPost {
-    pub id: String,
-    pub title: String,
-    pub body: String,
-}
+// #[derive(Insertable)]
+// #[table_name="posts"]
+// pub struct NewPost {
+//     pub id: String,
+//     pub title: String,
+//     pub body: String,
+// }

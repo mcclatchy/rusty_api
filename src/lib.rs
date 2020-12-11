@@ -8,9 +8,6 @@ use std::fs;
 #[macro_use]
 extern crate diesel;
 
-#[macro_use]
-extern crate lazy_static;
-
 #[derive(Deserialize)]
 pub struct Config {
     pub(crate) api_key: String,
