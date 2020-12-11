@@ -1,4 +1,4 @@
-# rusty_api
+# Rusty API
 A graphql based api that responds to cgi requests and uses sqlite3 for storage
 
 ## Setup Tools, Database and Compile Binary
@@ -36,4 +36,24 @@ Run these two commands from within your code directory:
 alias rust-musl-builder='docker run --rm -it -v "$(pwd)":/home/rust/src ekidd/rust-musl-builder'
 rust-musl-builder cargo build --release
 ```
+
+## Settings
+Rusty API requires some settings to be enabled for it to be used.
+The settings file is named `settings.toml` and is placed alongside the binary.
+
+Here is an example `settings.toml` file:
+```toml
+api_key = "189rjfadoisfj8923fjio"
+database_url = "rusty_api.sqlite"
+debug = false
+```
+
+`api_key` is reserved for future use. This is a random string of chracters that 
+can be used for allowing incoming requests from outside sources. 
+
+`database_url` is required. This is the name of the database and is
+expected to be placed alongside the binary.
+
+`debug` is reserved for future use and is intended to be used for switching 
+between a debug and production environment.
 
