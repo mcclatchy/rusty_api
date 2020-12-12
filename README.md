@@ -34,7 +34,7 @@ To get around that, it's often possible to compile on a different OS by targetti
 Another way to get around the problems of compiling for other OS is to _virtualize_ that OS, and what better way than to use Docker. :) 
 
 If you have the patience, it's not difficult (but not trivial) to build a Docker container from scratch to replicate the specific build environment. 
-However, in many cases you may have find a suitable Docker container already exists with what you need.
+However, in many cases you may have find a suitable Docker container already exists.
 
 #### tl;dr
 [This Github repo](https://github.com/emk/rust-musl-builder) contains a suitable Docker environment for compiling to CentOS 6. 
@@ -64,21 +64,30 @@ expected to be placed alongside the binary.
 `debug` is reserved for future use and is intended to be used for switching 
 between a debug and production environment.
 
-## Examples
-Although this program has been working very well for local development, there have been
-some occassional unexpected / odd behaviors when deployed to the static media server. 
+## Query Examples
+Because we have wildly outdated technology -- hence the entire reason we're using CGI like it's 1998 -- we cannot send 
+any `POST` requests to the endpoint. Therefore, all of the interaction with the API has to be done with `GET` requests.
 
-Here are three commands to test the current GraphQL functionality. 
-Some substitution will likely be necessary to reference the correct record or server location. 
+According to the [GraphQL documentation](https://graphql.org/learn/serving-over-http/), `GET` requests are a valid 
+method of interacting with GraphQL. The documentation states that all GraphQL queries should be preceded with 
+`query=`.
+
+Here are three commands to test the current GraphQL functionality.
+Some substitution will likely be necessary to reference the correct record or server location.
 
 ### Return all Posts
-`curl -X POST -H "Content-Type: application/json" --data '{ allPosts{id title body published} }' http://localhost:8000/cgi-bin/test.cgi -v`
+`query={ allPosts{id title body published} }`
 
 ### Return a single Post by ID
-`curl -X POST -H "Content-Type: application/json" --data '{ getPost(postId: "659cc6d7-b74d-4fff-bfae-c06aedb905f1"){id title body} }' http://localhost:8000/cgi-bin/test.cgi -v`
+`query={ getPost(postId: "659cc6d7-b74d-4fff-bfae-c06aedb905f1"){id title body} }`
 
 ### Create a new Post
-`curl -X POST -H "Content-Type: application/json" --data 'mutation { createPost(postTitle: "Today was a good day" postBody: "I didn't even have to use my AK" postPublished: true){id title body published} }' http://localhost:8000/cgi-bin/test.cgi -v`
+*This is currently not working and under diagnosis*
+`query=mutation { createPost(postTitle: "Today was a good day" postBody: "I didn't even have to use my AK" postPublished: true){id title body published} }`
+
+### Diagnosing Query Problems
+Because `GET` requests can sometimes include other parameters, the Rusty API is using RegEx to parse the URL parameters.
+If you run into trouble, try to diagnose the issue by removing any additional URL parameters.
 
 ## Testing
 If Python is available on your system, then it's very easy to setup a local server for testing. 
@@ -103,7 +112,8 @@ To run the script, type `./test.sh` and open point your web browser to `localhos
 
 ## Security
 Because CGI runs in a seperate thread created by the web server and as a standalone executable
-on the server, it is susceptible to denial of service attacks. 
+on the server, it is susceptible to denial of service attacks by calling so many instances of the 
+binary that it fills the systems available RAM. 
 
 Therefore, it is strongly recommended that the location of the binary is obfuscated, as well 
 as placed behind a username and password defined in a local `.htaccess` file.
