@@ -1,52 +1,59 @@
+extern crate cgi;
 extern crate diesel;
+use async_graphql::*;
+use regex::Regex;
 use rusty_api::graphql::{Query, Mutation};
-use std::io::{Write, Read, stdin};
+use urldecode;
 
-async fn get_post(query: String) -> Vec<u8> {
-    use async_graphql::*;
-    let string_query: String = format!(r#"{}"#, query);
-    let schema: Schema<Query, Mutation, EmptySubscription> = Schema::new(
-        Query,
-        Mutation,
-        EmptySubscription
-    );
-    // execute the query
-    let response: Response = schema.execute(string_query).await;
-    // serialize response
-    serde_json::to_vec(&response).unwrap()
-}
+fn main() {
 
-#[tokio::main]
-async fn main() {
+    // create an async runtime
+    let rt = tokio::runtime::Runtime::new().unwrap();
 
-    // get the content length; prevents the insertion of any additional commands
-    let content_length= envmnt::get_usize("CONTENT_LENGTH", 0);
+    // regex query for parsing graphql query
+    let re = Regex::new(r#"query=(.+[^&]})"#)
+        .expect("Could not find a regex match");
 
-    // read the body (POST sends payload in body)
-    let mut stdin_contents = vec![0; content_length];
+    // crank up the cgi handler
+    cgi::handle(|_request: cgi::Request| -> cgi::Response {
 
-    // declare string that can be updated with the following if/else statement
-    let mut graphql_query = String::new();
+        // We have to use GET parameters since POST is unreliable / probably stripped by proxy
+        let query_string = std::env::var("QUERY_STRING")
+            .expect("Unable to locate QUERY_STRING");
 
-    // if stdin_contents length is 0, run a test
-    if content_length != 0 {
-        // read in the stdin
-        stdin().read_exact(&mut stdin_contents).unwrap();
-        // get the graphql query from the body
-        graphql_query = String::from_utf8(stdin_contents).unwrap();
-    } else {
-        // pass in a test query
-        graphql_query = r#"{ allPosts{id title body published} }"#.to_string();
-    }
+        // url decode the query string
+        let query_decoded = urldecode::decode(query_string);
 
-    // send the query to the graphql abstraction layer
-    // let query_response = get_post("659cc6d7-b74d-4fff-bfae-c06aedb905f1".to_string()).await;
-    let query_response = get_post(graphql_query).await;
+        // use regex to parse the paramater `query=`
+        let re_groups = re.captures(query_decoded.as_str())
+            .expect("Unable to capture any groups");
 
-    // send back a response; CGI relies on stdout, so just going to form our own http payload
-    // to keep things as simple as possible. The extra line break is necessary to indicate body
-    println!("Content-Type: application/json");
-    println!("");
-    std::io::stdout().write(query_response.as_slice());
+        let graphql_query = re_groups.get(1)
+            .map_or("", |m| m.as_str());
+
+        // build the graphql schema handler
+        let graphql_schema: Schema<Query, Mutation, EmptySubscription> = Schema::new(
+            Query,
+            Mutation,
+            EmptySubscription
+        );
+
+        // execute the graphql query within an async/futures runtime
+        let response: Response = rt.block_on(async {
+            graphql_schema.execute(graphql_query).await
+        });
+
+        // serialize response
+        let graphql_response = serde_json::to_vec(&response)
+            .expect("failed to vectorize query response");
+
+        // return the response, body should be Vec<u8, Global>
+        cgi::binary_response(
+            200,
+            "application/json",
+            graphql_response
+        )
+
+    })
 
 }

@@ -9,7 +9,7 @@ pub fn establish_connection() -> SqliteConnection {
     let database_url = crate::Config::get_configuration().database_url;
     // establish and return the connection
     SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+        .expect("Error connecting to database")
 }
 
 // create a struct describing the data within a post
@@ -101,7 +101,9 @@ pub struct NewPost {
 // create rules for how the data returned by the query should be treated
 #[Object]
 impl NewPost {
-    pub async fn id(&self) -> &String { &self.id }
+    pub async fn id(&self) -> &String {
+        &self.id
+    }
     pub async fn title(&self) -> &String {
         &self.title
     }
@@ -125,6 +127,7 @@ impl Mutation {
         // create db connection
         let connection:SqliteConnection = establish_connection();
         // create a randomly generated string as the primary key
+        // TODO: make sure uuid doesn't already exist in db; regenerate if it does
         let uuid = Uuid::new_v4().to_hyphenated().to_string();
         // create new post structure
         let new_post = crate::models::Post {
@@ -137,7 +140,7 @@ impl Mutation {
         diesel::insert_into(posts)
             .values(&new_post)
             .execute(&connection)
-            .unwrap();
+            .expect("An error occurred trying to insert record into the database");
         // make the query and return the results
         let results = posts
             .load::<crate::models::Post>(&connection)
