@@ -84,7 +84,7 @@ Some substitution will likely be necessary to reference the correct record or se
 ### Create a new Post
 *The static media server uses a cache that does not support write operations*
 
-`query=mutation { createPost(postTitle: "Today was a good day" postBody: "I didn't even have to use my AK" postPublished: true){id title body published} }`
+`query=mutation { createPost(postTitle: "Today was a good day" postBody: "Tomorrow will be a better day." postPublished: true){id title body published} }`
 
 ### Diagnosing Query Problems
 Because `GET` requests can sometimes include other parameters, the Rusty API is using RegEx to parse the URL parameters.
