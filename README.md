@@ -82,7 +82,8 @@ Some substitution will likely be necessary to reference the correct record or se
 `query={ getPost(postId: "659cc6d7-b74d-4fff-bfae-c06aedb905f1"){id title body} }`
 
 ### Create a new Post
-*This is currently not working and under diagnosis*
+*The static media server uses a cache that does not support write operations*
+
 `query=mutation { createPost(postTitle: "Today was a good day" postBody: "I didn't even have to use my AK" postPublished: true){id title body published} }`
 
 ### Diagnosing Query Problems
